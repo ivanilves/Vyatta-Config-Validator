@@ -1,0 +1,6 @@
+Vyatta config validator is a script that validates Vyatta config.boot file.
+If config.boot is valid, script exits silently and returns zero.
+If config.boot is invalid, script warns user about spotted errors and returns non-zero value,
+which equals to spotted error count.
+When launched without parameters, script validates /opt/vyatta/etc/config/config.boot,
+or takes alternative config.boot path as only allowed parameter.
