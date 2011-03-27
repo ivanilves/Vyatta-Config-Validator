@@ -83,9 +83,8 @@ foreach (sort(keys(%all_set_nodes))) {
         my @pattern_lines = grep(/syntax:expression:[ \t]+pattern[ \t]+\$VAR\(\@\)/, @tmpl_lines);
         my $pattern       = $pattern_lines[0];
         if (defined($pattern)) {
-          $pattern =~ s/^.*\$VAR\(\@\)[ \t]*\"//; $pattern =~ s/\"[ \t]*;?.*$//; chomp($pattern);
-          my $pattern_matches = Vyatta::ConfigLoad::match_regex($pattern, $node_value);
-          if (!$pattern_matches) {
+          $pattern =~ s/^.*\$VAR\(\@\) \"//; $pattern =~ s/\"[ \t]*;?.*$//; chomp($pattern);
+          if (!($node_value =~ m/$pattern/)) {
             warn(qq{$node_path: "$node_value" does not match regex /$pattern/} . "\n");
             $validation_code++;
           }
