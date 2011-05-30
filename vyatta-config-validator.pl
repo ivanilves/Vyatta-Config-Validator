@@ -10,12 +10,12 @@ use Vyatta::TypeChecker;
 use strict;
 use warnings;
 
-sub get_tmpl_path {
+sub get_node_tmpl_path {
   my $node_path_elements_ref	= shift;
 
   my @node_path_elements	= @$node_path_elements_ref;
   my $tmpl_root_path 		= $ENV{vyatta_cfg_templates};
-  my $tmpl_path			= $tmpl_root_path;
+  my $node_tmpl_path		= $tmpl_root_path;
   my $node_tag			= 0;
   my $node_def			= 0;
   my $c				= 0;
@@ -23,22 +23,24 @@ sub get_tmpl_path {
     if ($node_tag == 1) 					{ $tmpl_path = join("/", $tmpl_path, "node.tag"); }
     elsif (($node_def == 1) && ($c == $#node_path_elements))	{ $tmpl_path = join("/", $tmpl_path, "node.def"); }
     else 							{ $tmpl_path = join("/", $tmpl_path, $_); } 
+
     if (-d $tmpl_path . "/node.tag") { $node_tag = 1; } else { $node_tag = 0; }
     if (-f $tmpl_path . "/node.def") { $node_def = 1; } else { $node_def = 0; }
+
     $c++;
   }
   if (! -e $tmpl_path) { return(undef); }
   return($tmpl_path);
 }
 
-sub get_tag_node_def_path {
-  my $node_path_elements_ref    = shift;
-  
-  my $tmpl_path = get_tmpl_path($node_path_elements_ref);
-  if (defined($tmpl_path) && ($tmpl_path =~ m/node\.tag$/)) {
-    $tmpl_path =~ s/node\.tag$//;
-    $tmpl_path = $tmpl_path . "node.def";
-    if (-e $tmpl_path) { return($tmpl_path); }
+sub get_inner_node_def_path {
+  my $node_path_elements_ref = shift;
+ 
+  my $node_tmpl_path = get_node_tmpl_path($node_path_elements_ref);
+  if (defined($node_tmpl_path) && ($node_tmpl_path =~ m/node\.tag$/)) {
+    $node_tmpl_path =~ s/node\.tag$//;
+    $node_tmpl_path = $node_tmpl_path . "node.def";
+    if (-f $node_tmpl_path) { return($node_tmpl_path); }
   }
   return(undef);
 }
@@ -69,10 +71,8 @@ foreach (@config_set_nodes) {
     @node_subpath_elements 	= (@node_subpath_elements, $node_subpath_element);
     $node_subpath		= join(' ', @node_subpath_elements);
     if (!defined($all_set_nodes{$node_subpath})) {
-      my $node_def_path = get_tag_node_def_path(\@node_subpath_elements);
-      if (defined($node_def_path)) { $all_set_nodes{$node_subpath} = $node_subpath_elements[$c]; 
-#print(qq{$node_subpath = $node_subpath_elements[$c]} . "\n");
-} else { $all_set_nodes{$node_subpath} = undef; }
+      my $inner_node_def_path = get_inner_node_def_path(\@node_subpath_elements);
+      if (defined($inner_node_def_path)) { $all_set_nodes{$node_subpath} = $node_subpath_elements[$c]; } else { $all_set_nodes{$node_subpath} = undef; }
     }
     $c++;
   }
@@ -86,13 +86,12 @@ foreach (sort(keys(%all_set_nodes))) {
   my @node_path_elements 	= split(/ /, $node_path);
   my $node_value		= $all_set_nodes{$node_path};
   my $node_tmpl_ref 		= $config->parseTmplAll($node_path);
-  my $node_tmpl_path 		= get_tmpl_path(\@node_path_elements);
+  my $node_tmpl_path 		= get_node_tmpl_path(\@node_path_elements);
 
   if (!defined($node_tmpl_path)) {
     warn(qq{$node_path: not a valid node path!} . "\n");
     $validation_code++;
   } elsif (defined($node_value)) {
-    #print(qq{$node_tmpl_path: $node_path = $node_value} . "\n");
     if ((defined($node_tmpl_ref->{type})) && ($node_tmpl_ref->{type} ne 'txt')) {
       if (!validateType($node_tmpl_ref->{type}, $node_value, 1)) {
         warn(qq{$node_path: "$node_value" is not a valid value of type $node_tmpl_ref->{type}!} . "\n");
@@ -100,18 +99,10 @@ foreach (sort(keys(%all_set_nodes))) {
       }
     } else {
       # try to apply extra validation, if node.def file exists
-      my $node_tmpl_file = $node_tmpl_path . "/node.def";
-      if ($node_tmpl_path =~ m/node\.def$/) {
-        $node_tmpl_file = $node_tmpl_path;
-      } 
-      elsif ($node_tmpl_path =~ m/node\.tag$/) {
-        $node_tmpl_file = $node_tmpl_path;
-        $node_tmpl_file =~ s/node\.tag$//;
-        $node_tmpl_file = $node_tmpl_file . "node.def";
-      }
-print("- " . $node_tmpl_file . "\n");
+      my $node_tmpl_file 	= $node_tmpl_path;
+      $node_tmpl_file 		=~ s/node\.(tag|def)$//;
+      $node_tmpl_file 		= $node_tmpl_file . "node.def"; 
       if (-f $node_tmpl_file) {
-print("* " . $node_tmpl_file . "\n");
         open(TMPL_FILE, $node_tmpl_file); 
         my @tmpl_lines 		= <TMPL_FILE>; 
         close(TMPL_FILE);
