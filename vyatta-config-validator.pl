@@ -20,17 +20,17 @@ sub get_node_tmpl_path {
   my $node_def			= 0;
   my $c				= 0;
   foreach (@node_path_elements) {
-    if ($node_tag == 1) 					{ $tmpl_path = join("/", $tmpl_path, "node.tag"); }
-    elsif (($node_def == 1) && ($c == $#node_path_elements))	{ $tmpl_path = join("/", $tmpl_path, "node.def"); }
-    else 							{ $tmpl_path = join("/", $tmpl_path, $_); } 
+    if ($node_tag == 1) 					{ $node_tmpl_path = join("/", $node_tmpl_path, "node.tag"); }
+    elsif (($node_def == 1) && ($c == $#node_path_elements))	{ $node_tmpl_path = join("/", $node_tmpl_path, "node.def"); }
+    else 							{ $node_tmpl_path = join("/", $node_tmpl_path, $_); } 
 
-    if (-d $tmpl_path . "/node.tag") { $node_tag = 1; } else { $node_tag = 0; }
-    if (-f $tmpl_path . "/node.def") { $node_def = 1; } else { $node_def = 0; }
+    if (-d $node_tmpl_path . "/node.tag") { $node_tag = 1; } else { $node_tag = 0; }
+    if (-f $node_tmpl_path . "/node.def") { $node_def = 1; } else { $node_def = 0; }
 
     $c++;
   }
-  if (! -e $tmpl_path) { return(undef); }
-  return($tmpl_path);
+  if (! -e $node_tmpl_path) { return(undef); }
+  return($node_tmpl_path);
 }
 
 sub get_inner_node_def_path {
