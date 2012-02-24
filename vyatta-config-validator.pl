@@ -110,7 +110,7 @@ foreach (sort(keys(%all_set_nodes))) {
         my $pattern       	= $pattern_lines[0];
         if (defined($pattern)) {
           $pattern =~ s/^.*\$VAR\(\@\) \"//; $pattern =~ s/\"[ \t]*;?.*$//; chomp($pattern);
-          if (!($node_value =~ m/$pattern/)) {
+          if (!($node_value =~ m/$pattern/) && ($node_value ne "ip")) {
             warn(qq{$node_path: "$node_value" does not match regex /$pattern/} . "\n");
             $validation_code++;
           }
