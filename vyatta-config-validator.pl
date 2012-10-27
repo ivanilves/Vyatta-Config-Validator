@@ -93,7 +93,7 @@ foreach (sort(keys(%all_set_nodes))) {
     $validation_code++;
   } elsif (defined($node_value)) {
     if ((defined($node_tmpl_ref->{type})) && ($node_tmpl_ref->{type} ne 'txt')) {
-      if (!validateType($node_tmpl_ref->{type}, $node_value, 1)) {
+      if (!validateType($node_tmpl_ref->{type}, $node_value, 1) && (!$node_tmpl_ref->{type2} || !validateType($node_tmpl_ref->{type2}, $node_value, 1))) {
         warn(qq{$node_path: "$node_value" is not a valid value of type $node_tmpl_ref->{type}!} . "\n");
         $validation_code++;
       }
