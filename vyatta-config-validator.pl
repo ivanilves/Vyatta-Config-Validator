@@ -22,7 +22,7 @@ sub get_node_tmpl_path {
   foreach (@node_path_elements) {
     if ($node_tag == 1) 					{ $node_tmpl_path = join("/", $node_tmpl_path, "node.tag"); }
     elsif (($node_def == 1) && ($c == $#node_path_elements))	{ $node_tmpl_path = join("/", $node_tmpl_path, "node.def"); }
-    else 							{ $node_tmpl_path = join("/", $node_tmpl_path, $_); } 
+    else 							{ $node_tmpl_path = join("/", $node_tmpl_path, $_); }
 
     if (-d $node_tmpl_path . "/node.tag") { $node_tag = 1; } else { $node_tag = 0; }
     if (-f $node_tmpl_path . "/node.def") { $node_def = 1; } else { $node_def = 0; }
@@ -35,7 +35,7 @@ sub get_node_tmpl_path {
 
 sub get_inner_node_def_path {
   my $node_path_elements_ref = shift;
- 
+
   my $node_tmpl_path = get_node_tmpl_path($node_path_elements_ref);
   if (defined($node_tmpl_path) && ($node_tmpl_path =~ m/node\.tag$/)) {
     $node_tmpl_path =~ s/node\.tag$//;
@@ -45,7 +45,9 @@ sub get_inner_node_def_path {
   return(undef);
 }
 
-my $config_file 	= "/opt/vyatta/etc/config/config.boot";
+my $config_file 	= "/config/config.boot";
+if (! -f $config_file)  { $config_file = "/opt/vyatta/etc/config/config.boot" }
+
 $config_file 		= $ARGV[0] if defined($ARGV[0]);
 
 # get Vyatta config statements
@@ -101,10 +103,10 @@ foreach (sort(keys(%all_set_nodes))) {
       # try to apply extra validation, if node.def file exists
       my $node_tmpl_file 	= $node_tmpl_path;
       $node_tmpl_file 		=~ s/node\.(tag|def)$//;
-      $node_tmpl_file 		= $node_tmpl_file . "node.def"; 
+      $node_tmpl_file 		= $node_tmpl_file . "node.def";
       if (-f $node_tmpl_file) {
-        open(TMPL_FILE, $node_tmpl_file); 
-        my @tmpl_lines 		= <TMPL_FILE>; 
+        open(TMPL_FILE, $node_tmpl_file);
+        my @tmpl_lines 		= <TMPL_FILE>;
         close(TMPL_FILE);
         my @pattern_lines 	= grep(/syntax:expression:[ \t]+pattern[ \t]+\$VAR\(\@\)/, @tmpl_lines);
         my $pattern       	= $pattern_lines[0];
@@ -116,7 +118,7 @@ foreach (sort(keys(%all_set_nodes))) {
           }
         }
       }
-    } 
+    }
   }
 }
 
